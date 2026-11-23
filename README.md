@@ -4,6 +4,10 @@ A deterministic simulation that stress-tests a logistics ops agent. Each seed bu
 
 The agent can be a scripted policy or a real LLM. All data is synthetic. Built with [Claude Code](https://claude.com/claude-code).
 
+![A terminal recording of seed 10](docs/demo.gif)
+
+Seed 10: the first-pass policy retries a committed receipt, then the careful one reads state and stops.
+
 ## Why
 
 An agent that writes to an ERP or TMS can do damage a wrong chat answer cannot. If a receipt post commits, then times out, and the agent retries, inventory is wrong and everything planned from it inherits the error. These failures need a specific interleaving of events, so they are rare in staging and hard to reproduce after an incident.
