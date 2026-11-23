@@ -17,6 +17,8 @@ cargo run -q --release -- replay repros/v1-seed-00010.json --policy v2
 
 The `explore` command stops at seed 10 and saves the repro file the two replays read. It and the `v1` replay exit 1 because they report a violation.
 
+The policies are in [`src/agent/`](src/agent/): `v1.rs` is the first pass, `v2.rs` is the careful one, and `llm.rs` drives a real model.
+
 The agents are scripted by default. An optional LLM mode drives the same tools with a real model and needs a logged-in Claude Code CLI:
 
 ```sh
