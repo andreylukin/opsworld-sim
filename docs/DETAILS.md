@@ -1,12 +1,12 @@
 # opsworld-sim details
 
-This page holds results and internals that would crowd the [README](../README.md). The numbers below are from real runs of seeds 1 to 500, and from eight recorded Claude Haiku sessions.
+These are the results and internals that did not fit in the [README](../README.md). The numbers below are from real runs of seeds 1 to 500, and from eight recorded Claude Haiku sessions.
 
 ## Why
 
-An agent that writes to an ERP or TMS can do damage a wrong chat answer cannot. If a receipt post commits, then times out, and the agent retries, inventory is wrong and everything planned from it inherits the error. These failures need a specific interleaving of events, so they are rare in staging and hard to reproduce after an incident.
+If an agent posts a receipt to an ERP, the post commits and then times out, and the agent retries, inventory is wrong and everything planned from it inherits the error. These failures need a specific interleaving of events, so they are rare in staging and hard to reproduce after an incident.
 
-The approach comes from [FoundationDB's simulation testing](https://apple.github.io/foundationdb/testing.html) and [Antithesis](https://antithesis.com/). This is a small sketch of that idea applied to an ops agent.
+The approach comes from [FoundationDB's simulation testing](https://apple.github.io/foundationdb/testing.html) and [Antithesis](https://antithesis.com/). This applies that idea to an ops agent on a small scale.
 
 ## Results
 
@@ -60,7 +60,7 @@ Claude Haiku ran on the first 8 seeds whose schedule contains a timeout-after-co
 
 The model never made the blind-retry mistake in these runs, so this experiment did not catch it. Only one run (seed 10) got as far as a timeout. There it read the shipment, saw the receipt had landed, and escalated instead of writing again. The other seven runs stopped earlier on a different violation, so their timeouts never fired, and one timeout is not evidence that the model is safe.
 
-Seven of 8 runs did break an invariant. In 4 of the 7, the model booked a new dock for a delayed ETA without cancelling the old appointment. Live runs also vary: an earlier trial of seed 10 failed on `no-double-book`, while the recorded run passed. All 8 recordings replayed to a matching trace hash.
+Seven of 8 runs did break an invariant. In 4 of the 7, the model booked a new dock for a delayed ETA without cancelling the old appointment. Live runs also vary. An earlier trial of seed 10 failed on `no-double-book`, while the recorded run passed. All 8 recordings replayed to a matching trace hash.
 
 LLM mode needs an authenticated [Claude Code](https://claude.com/claude-code) CLI on your `PATH`. Build, tests, clippy and replay do not. Each model turn is one `claude -p` call that returns one tool call, which goes through the same fault-injecting port as the scripted policies. Every request and response is saved in the repro file. Replay answers from that recording, never calls a model, and fails if any request differs.
 
@@ -172,10 +172,10 @@ The simulation has no wall clock, network, threads or hash-order iteration. The 
 
 The oracle judges the agent only on information already delivered to it.
 
-## What it does not do
+## Limits
 
 - The ERP and TMS are in-memory stand-ins. A pass here does not prove a real system is safe.
-- This is a sketch. Seeds are sampled at random, with no coverage guidance.
+- Seeds are sampled at random, with no coverage guidance.
 - The stand-ins omit partial commits, batch jobs, permissions, rate limits, concurrent human edits, and vendor-specific document quirks.
 - The same author wrote the world, the oracle and the policies, so `v2` passing shows only that it handles the failures imagined here.
 - The invariants are safety properties, and escalating everything would satisfy them. A test checks that `v2` escalates only on schema breaks, but the LLM runs have no such progress metric.
