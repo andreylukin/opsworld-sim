@@ -1,0 +1,75 @@
+# Live LLM runs, captured from real command output.
+# Model: haiku through the Claude Code CLI. Scenario: baseline.
+# Seeds: the first 8 whose fault schedule contains a timeout-after-commit.
+# Each seed ran as its own process, with this command:
+#   opsworld llm --seeds <seed> --model haiku --out repros
+# A run stops at its first violation, so a later fault may never fire.
+
+ FAIL  seed 8  faults 3  model exchanges 19  turn-cap hits 0  trace cdd5ea62ec32e03c
+  fault: out-of-order SH-02
+  fault: out-of-order SH-03
+  fault: timeout-after-commit erp.post_receipt call #2
+  no-double-book: order line for SH-03 has two active appointments (at D1 11:44 and D1 13:26)
+  repro: repros/llm-seed-00008.json
+  replay: EXACT REPLAY  trace hash cdd5ea62ec32e03c matches the recording
+
+ PASS  seed 10  faults 1  model exchanges 45  turn-cap hits 0  trace 5780c2f185ea3c3a
+  fault: timeout-after-commit erp.post_receipt call #4
+  repro: repros/llm-seed-00010.json
+  replay: EXACT REPLAY  trace hash 5780c2f185ea3c3a matches the recording
+
+ FAIL  seed 20  faults 3  model exchanges 5  turn-cap hits 0  trace 330c464c4b7aff06
+  fault: out-of-order SH-03
+  fault: late-asn SH-03 +24m after arrival
+  fault: timeout-after-commit erp.post_receipt call #2
+  promise-feasible: SH-03 promised D1 17:43 for 160 units, but stock 50 + transit 0 by then is short
+  repro: repros/llm-seed-00020.json
+  replay: EXACT REPLAY  trace hash 330c464c4b7aff06 matches the recording
+
+ FAIL  seed 23  faults 1  model exchanges 22  turn-cap hits 0  trace 30423492e9d56827
+  fault: timeout-after-commit erp.post_receipt call #2
+  no-double-book: order line for SH-01 has two active appointments (at D1 11:29 and D1 16:36)
+  repro: repros/llm-seed-00023.json
+  replay: EXACT REPLAY  trace hash 30423492e9d56827 matches the recording
+
+ FAIL  seed 24  faults 3  model exchanges 39  turn-cap hits 0  trace 0c10a2f945b4519a
+  fault: carrier-no-show SH-06
+  fault: duplicate-edi SH-01 STATUS in_transit +29m
+  fault: timeout-after-commit erp.set_promise call #6
+  no-double-book: order line for SH-06 has two active appointments (at D1 07:54 and D1 11:43)
+  repro: repros/llm-seed-00024.json
+  replay: EXACT REPLAY  trace hash 0c10a2f945b4519a matches the recording
+
+ FAIL  seed 27  faults 2  model exchanges 34  turn-cap hits 0  trace fcad12a2bd7f3a89
+  fault: timeout-after-commit erp.post_receipt call #3
+  fault: timeout-before-commit erp.post_receipt call #4
+  no-double-book: order line for SH-01 has two active appointments (at D1 10:19 and D1 15:54)
+  repro: repros/llm-seed-00027.json
+  replay: EXACT REPLAY  trace hash fcad12a2bd7f3a89 matches the recording
+
+ FAIL  seed 29  faults 3  model exchanges 9  turn-cap hits 0  trace 5dffa5fb1ed71f1f
+  fault: schema-drift SH-02 STATUS delayed: eta missing
+  fault: schema-drift SH-03 ASN: eta renamed to estimated_arrival
+  fault: timeout-after-commit erp.set_promise call #3
+  no-write-after-schema-break: wrote to SH-03 after receiving a malformed document for it
+  repro: repros/llm-seed-00029.json
+  replay: EXACT REPLAY  trace hash 5dffa5fb1ed71f1f matches the recording
+
+ FAIL  seed 34  faults 3  model exchanges 11  turn-cap hits 0  trace 93c035c0182854ba
+  fault: late-asn SH-02 +57m after arrival
+  fault: late-asn SH-03 +36m after arrival
+  fault: timeout-after-commit erp.post_receipt call #3
+  promise-feasible: SH-03 promised D1 11:39 for 110 units, but stock 10 + transit 0 by then is short
+  repro: repros/llm-seed-00034.json
+  replay: EXACT REPLAY  trace hash 93c035c0182854ba matches the recording
+
+# Timeline of the only run that reached a timeout (seed 10, SH-02):
+#   opsworld replay examples/llm-seed-00010.json
+0042 D1 15:10 DOC       STATUS arrived EDI000007 SH-02 qty_received=160
+0043 D1 15:10 FAULT     erp.post_receipt SH-02 qty=160 => TIMEOUT (write committed: on_hand 50 -> 210, agent cannot tell)
+0044 D1 15:10 read      erp.read_shipment SH-02 => receipts=1 appointment=yes promise=no
+0045 D1 15:10 ESCALATE  ops.escalate SH-02 (post_receipt for qty 160 returned a timeout, but read_shipment now shows receipts=1, so it is unclear whether the receipt was recorded. Retrying could double-post. Shipment is also flagged (ASN qty_shipped 160 vs ordered 190) with dock_appointment 910 and promise_date null. Needs manual check of the receipt ledger before any further writes.) => handed to a human
+
+# An earlier single-seed trial of seed 10, same prompt and model, failed differently:
+0034 D1 07:08 VIOLATION no-double-book: order line for SH-04 has two active appointments (at D1 13:24 and D1 14:57)
+EXACT REPLAY  trace hash 94e8fee140e43f7c matches the recording

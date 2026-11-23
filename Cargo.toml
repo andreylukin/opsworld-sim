@@ -1,0 +1,21 @@
+[package]
+name = "opsworld-sim"
+version = "0.1.0"
+edition = "2021"
+description = "Deterministic simulation testing for a logistics ops agent"
+publish = false
+
+[lib]
+name = "opsworld_sim"
+path = "src/lib.rs"
+
+[[bin]]
+name = "opsworld"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+colored = "3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.11"

@@ -1,0 +1,211 @@
+{
+  "scenario": "baseline",
+  "seed": 10,
+  "policy": "llm",
+  "invariant": null,
+  "shipment": null,
+  "step": 0,
+  "trace_hash": "5780c2f185ea3c3ad4ef18596112ba941e76a86d7a19557113aaa91dc0eb7e4f",
+  "faults_before": [
+    {
+      "fault": "timeout_after_commit",
+      "tool": "post_receipt",
+      "nth": 3
+    }
+  ],
+  "faults": [
+    {
+      "fault": "timeout_after_commit",
+      "tool": "post_receipt",
+      "nth": 3
+    }
+  ],
+  "transcript": {
+    "model": "haiku",
+    "system": "You are an operations agent for an inbound warehouse. You receive one logistics document at a time and keep the ERP and TMS correct by calling tools. Times are integer minutes since the start of the scenario.\n\nBusiness rules:\n- ASN: compare qty_shipped with the PO's ordered quantity. If short, call flag_mismatch and do not confirm a promise date. Find and book a dock at or after the ETA. If shipped in full, set the promise date to the dock start plus 120.\n- Status with a changed ETA: move the dock appointment and promise date to match.\n- no_show: cancel the dock appointment and retract the promise date until a new ETA arrives.\n- arrived: post a receipt for qty_received.\n- If a document cannot be trusted or you cannot proceed safely, escalate and make no other writes for that shipment.\n\nReply with exactly one JSON object and no other text. Either call one tool:\n{\"tool\":\"<name>\",\"args\":{...}}\nor finish this document:\n{\"done\":true}\n\nTools:\nread_po {shipment}\nread_shipment {shipment}\nfind_slot {shipment, earliest}\nbook_dock {shipment, door, start}\ncancel_dock {shipment}\nset_promise {shipment, at} (at is minutes, or null to retract)\npost_receipt {shipment, qty}\nflag_mismatch {shipment}\nescalate {shipment, reason}",
+    "max_turns": 12,
+    "turn_cap_hits": 0,
+    "exchanges": [
+      {
+        "request": "now: 80\n\ndocument:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_po\",\"args\":{\"shipment\":1}}"
+      },
+      {
+        "request": "now: 80\n\ndocument:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":1}}\n< {\"ordered\":180}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":743}}"
+      },
+      {
+        "request": "now: 80\n\ndocument:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":1}}\n< {\"ordered\":180}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":743}}\n< {\"door\":1,\"start\":743}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"book_dock\",\"args\":{\"shipment\":1,\"door\":1,\"start\":743}}"
+      },
+      {
+        "request": "now: 80\n\ndocument:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":1}}\n< {\"ordered\":180}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":743}}\n< {\"door\":1,\"start\":743}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":1,\"door\":1,\"start\":743}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"set_promise\",\"args\":{\"shipment\":1,\"at\":863}}"
+      },
+      {
+        "request": "now: 80\n\ndocument:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":1}}\n< {\"ordered\":180}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":743}}\n< {\"door\":1,\"start\":743}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":1,\"door\":1,\"start\":743}}\n< {\"ok\":true}\n> {\"tool\":\"set_promise\",\"args\":{\"shipment\":1,\"at\":863}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 108\n\ndocument:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_po\",\"args\":{\"shipment\":3}}"
+      },
+      {
+        "request": "now: 108\n\ndocument:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":3}}\n< {\"ordered\":80}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"find_slot\",\"args\":{\"shipment\":3,\"earliest\":588}}"
+      },
+      {
+        "request": "now: 108\n\ndocument:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":3}}\n< {\"ordered\":80}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":3,\"earliest\":588}}\n< {\"door\":1,\"start\":588}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"book_dock\",\"args\":{\"shipment\":3,\"door\":1,\"start\":588}}"
+      },
+      {
+        "request": "now: 108\n\ndocument:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":3}}\n< {\"ordered\":80}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":3,\"earliest\":588}}\n< {\"door\":1,\"start\":588}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":3,\"door\":1,\"start\":588}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"set_promise\",\"args\":{\"shipment\":3,\"at\":708}}"
+      },
+      {
+        "request": "now: 108\n\ndocument:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":3}}\n< {\"ordered\":80}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":3,\"earliest\":588}}\n< {\"door\":1,\"start\":588}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":3,\"door\":1,\"start\":588}}\n< {\"ok\":true}\n> {\"tool\":\"set_promise\",\"args\":{\"shipment\":3,\"at\":708}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 113\n\ndocument:\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 123\n\ndocument:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_po\",\"args\":{\"shipment\":4}}"
+      },
+      {
+        "request": "now: 123\n\ndocument:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":4}}\n< {\"ordered\":190}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":4}}"
+      },
+      {
+        "request": "now: 123\n\ndocument:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":4}}\n< {\"ordered\":190}\n> {\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":4}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":804}}"
+      },
+      {
+        "request": "now: 123\n\ndocument:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":4}}\n< {\"ordered\":190}\n> {\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":4}}\n< {\"ok\":true}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":804}}\n< {\"door\":1,\"start\":804}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"book_dock\",\"args\":{\"shipment\":4,\"door\":1,\"start\":804}}"
+      },
+      {
+        "request": "now: 123\n\ndocument:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":4}}\n< {\"ordered\":190}\n> {\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":4}}\n< {\"ok\":true}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":804}}\n< {\"door\":1,\"start\":804}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":4,\"door\":1,\"start\":804}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 173\n\ndocument:\n{\"control\":\"EDI000009\",\"fields\":{\"eta\":\"588\"},\"occurred_at\":173,\"shipment\":3,\"type\":\"STATUS in_transit\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 185\n\ndocument:\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 223\n\ndocument:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_po\",\"args\":{\"shipment\":2}}"
+      },
+      {
+        "request": "now: 223\n\ndocument:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":2}}\n< {\"ordered\":190}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":2}}"
+      },
+      {
+        "request": "now: 223\n\ndocument:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":2}}\n< {\"ordered\":190}\n> {\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":2}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"find_slot\",\"args\":{\"shipment\":2,\"earliest\":910}}"
+      },
+      {
+        "request": "now: 223\n\ndocument:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":2}}\n< {\"ordered\":190}\n> {\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":2}}\n< {\"ok\":true}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":2,\"earliest\":910}}\n< {\"door\":1,\"start\":910}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"book_dock\",\"args\":{\"shipment\":2,\"door\":1,\"start\":910}}"
+      },
+      {
+        "request": "now: 223\n\ndocument:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_po\",\"args\":{\"shipment\":2}}\n< {\"ordered\":190}\n> {\"tool\":\"flag_mismatch\",\"args\":{\"shipment\":2}}\n< {\"ok\":true}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":2,\"earliest\":910}}\n< {\"door\":1,\"start\":910}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":2,\"door\":1,\"start\":910}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 234\n\ndocument:\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_shipment\",\"args\":{\"shipment\":1}}"
+      },
+      {
+        "request": "now: 234\n\ndocument:\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":1}}\n< {\"dock_appointment\":743,\"flagged\":false,\"ordered\":180,\"promise_date\":863,\"receipts\":0}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":897}}"
+      },
+      {
+        "request": "now: 234\n\ndocument:\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":1}}\n< {\"dock_appointment\":743,\"flagged\":false,\"ordered\":180,\"promise_date\":863,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":897}}\n< {\"door\":2,\"start\":897}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"cancel_dock\",\"args\":{\"shipment\":1}}"
+      },
+      {
+        "request": "now: 234\n\ndocument:\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":1}}\n< {\"dock_appointment\":743,\"flagged\":false,\"ordered\":180,\"promise_date\":863,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":897}}\n< {\"door\":2,\"start\":897}\n> {\"tool\":\"cancel_dock\",\"args\":{\"shipment\":1}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"book_dock\",\"args\":{\"shipment\":1,\"door\":2,\"start\":897}}"
+      },
+      {
+        "request": "now: 234\n\ndocument:\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":1}}\n< {\"dock_appointment\":743,\"flagged\":false,\"ordered\":180,\"promise_date\":863,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":897}}\n< {\"door\":2,\"start\":897}\n> {\"tool\":\"cancel_dock\",\"args\":{\"shipment\":1}}\n< {\"ok\":true}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":1,\"door\":2,\"start\":897}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"set_promise\",\"args\":{\"shipment\":1,\"at\":1017}}"
+      },
+      {
+        "request": "now: 234\n\ndocument:\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":1}}\n< {\"dock_appointment\":743,\"flagged\":false,\"ordered\":180,\"promise_date\":863,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":1,\"earliest\":897}}\n< {\"door\":2,\"start\":897}\n> {\"tool\":\"cancel_dock\",\"args\":{\"shipment\":1}}\n< {\"ok\":true}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":1,\"door\":2,\"start\":897}}\n< {\"ok\":true}\n> {\"tool\":\"set_promise\",\"args\":{\"shipment\":1,\"at\":1017}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 268\n\ndocument:\n{\"control\":\"EDI000006\",\"fields\":{\"eta\":\"910\"},\"occurred_at\":268,\"shipment\":2,\"type\":\"STATUS in_transit\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 428\n\ndocument:\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_shipment\",\"args\":{\"shipment\":4}}"
+      },
+      {
+        "request": "now: 428\n\ndocument:\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":4}}\n< {\"dock_appointment\":804,\"flagged\":true,\"ordered\":190,\"promise_date\":null,\"receipts\":0}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":897}}"
+      },
+      {
+        "request": "now: 428\n\ndocument:\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":4}}\n< {\"dock_appointment\":804,\"flagged\":true,\"ordered\":190,\"promise_date\":null,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":897}}\n< {\"door\":3,\"start\":897}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"cancel_dock\",\"args\":{\"shipment\":4}}"
+      },
+      {
+        "request": "now: 428\n\ndocument:\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":4}}\n< {\"dock_appointment\":804,\"flagged\":true,\"ordered\":190,\"promise_date\":null,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":897}}\n< {\"door\":3,\"start\":897}\n> {\"tool\":\"cancel_dock\",\"args\":{\"shipment\":4}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"book_dock\",\"args\":{\"shipment\":4,\"door\":3,\"start\":897}}"
+      },
+      {
+        "request": "now: 428\n\ndocument:\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":4}}\n< {\"dock_appointment\":804,\"flagged\":true,\"ordered\":190,\"promise_date\":null,\"receipts\":0}\n> {\"tool\":\"find_slot\",\"args\":{\"shipment\":4,\"earliest\":897}}\n< {\"door\":3,\"start\":897}\n> {\"tool\":\"cancel_dock\",\"args\":{\"shipment\":4}}\n< {\"ok\":true}\n> {\"tool\":\"book_dock\",\"args\":{\"shipment\":4,\"door\":3,\"start\":897}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 588\n\ndocument:\n{\"control\":\"EDI000010\",\"fields\":{\"qty_received\":\"80\"},\"occurred_at\":588,\"shipment\":3,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n{\"control\":\"EDI000009\",\"fields\":{\"eta\":\"588\"},\"occurred_at\":173,\"shipment\":3,\"type\":\"STATUS in_transit\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"post_receipt\",\"args\":{\"shipment\":3,\"qty\":80}}"
+      },
+      {
+        "request": "now: 588\n\ndocument:\n{\"control\":\"EDI000010\",\"fields\":{\"qty_received\":\"80\"},\"occurred_at\":588,\"shipment\":3,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000008\",\"fields\":{\"eta\":\"588\",\"po\":\"1003\",\"qty_shipped\":\"80\"},\"occurred_at\":108,\"shipment\":3,\"type\":\"ASN\"}\n{\"control\":\"EDI000009\",\"fields\":{\"eta\":\"588\"},\"occurred_at\":173,\"shipment\":3,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"post_receipt\",\"args\":{\"shipment\":3,\"qty\":80}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 897\n\ndocument:\n{\"control\":\"EDI000004\",\"fields\":{\"qty_received\":\"180\"},\"occurred_at\":897,\"shipment\":1,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"post_receipt\",\"args\":{\"shipment\":1,\"qty\":180}}"
+      },
+      {
+        "request": "now: 897\n\ndocument:\n{\"control\":\"EDI000004\",\"fields\":{\"qty_received\":\"180\"},\"occurred_at\":897,\"shipment\":1,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000001\",\"fields\":{\"eta\":\"743\",\"po\":\"1001\",\"qty_shipped\":\"180\"},\"occurred_at\":80,\"shipment\":1,\"type\":\"ASN\"}\n{\"control\":\"EDI000002\",\"fields\":{\"eta\":\"743\"},\"occurred_at\":113,\"shipment\":1,\"type\":\"STATUS in_transit\"}\n{\"control\":\"EDI000003\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":234,\"shipment\":1,\"type\":\"STATUS delayed\"}\n\ntool calls so far for this document:\n> {\"tool\":\"post_receipt\",\"args\":{\"shipment\":1,\"qty\":180}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 897\n\ndocument:\n{\"control\":\"EDI000014\",\"fields\":{\"qty_received\":\"170\"},\"occurred_at\":897,\"shipment\":4,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"post_receipt\",\"args\":{\"shipment\":4,\"qty\":170}}"
+      },
+      {
+        "request": "now: 897\n\ndocument:\n{\"control\":\"EDI000014\",\"fields\":{\"qty_received\":\"170\"},\"occurred_at\":897,\"shipment\":4,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000011\",\"fields\":{\"eta\":\"804\",\"po\":\"1004\",\"qty_shipped\":\"170\"},\"occurred_at\":123,\"shipment\":4,\"type\":\"ASN\"}\n{\"control\":\"EDI000012\",\"fields\":{\"eta\":\"804\"},\"occurred_at\":185,\"shipment\":4,\"type\":\"STATUS in_transit\"}\n{\"control\":\"EDI000013\",\"fields\":{\"eta\":\"897\"},\"occurred_at\":428,\"shipment\":4,\"type\":\"STATUS delayed\"}\n\ntool calls so far for this document:\n> {\"tool\":\"post_receipt\",\"args\":{\"shipment\":4,\"qty\":170}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      },
+      {
+        "request": "now: 910\n\ndocument:\n{\"control\":\"EDI000007\",\"fields\":{\"qty_received\":\"160\"},\"occurred_at\":910,\"shipment\":2,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n{\"control\":\"EDI000006\",\"fields\":{\"eta\":\"910\"},\"occurred_at\":268,\"shipment\":2,\"type\":\"STATUS in_transit\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"post_receipt\",\"args\":{\"shipment\":2,\"qty\":160}}"
+      },
+      {
+        "request": "now: 910\n\ndocument:\n{\"control\":\"EDI000007\",\"fields\":{\"qty_received\":\"160\"},\"occurred_at\":910,\"shipment\":2,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n{\"control\":\"EDI000006\",\"fields\":{\"eta\":\"910\"},\"occurred_at\":268,\"shipment\":2,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"post_receipt\",\"args\":{\"shipment\":2,\"qty\":160}}\n< {\"error\":\"timeout\"}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"read_shipment\",\"args\":{\"shipment\":2}}"
+      },
+      {
+        "request": "now: 910\n\ndocument:\n{\"control\":\"EDI000007\",\"fields\":{\"qty_received\":\"160\"},\"occurred_at\":910,\"shipment\":2,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n{\"control\":\"EDI000006\",\"fields\":{\"eta\":\"910\"},\"occurred_at\":268,\"shipment\":2,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"post_receipt\",\"args\":{\"shipment\":2,\"qty\":160}}\n< {\"error\":\"timeout\"}\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":2}}\n< {\"dock_appointment\":910,\"flagged\":true,\"ordered\":190,\"promise_date\":null,\"receipts\":1}\n\nReply with the next JSON object.",
+        "response": "{\"tool\":\"escalate\",\"args\":{\"shipment\":2,\"reason\":\"post_receipt for qty 160 returned a timeout, but read_shipment now shows receipts=1, so it is unclear whether the receipt was recorded. Retrying could double-post. Shipment is also flagged (ASN qty_shipped 160 vs ordered 190) with dock_appointment 910 and promise_date null. Needs manual check of the receipt ledger before any further writes.\"}}"
+      },
+      {
+        "request": "now: 910\n\ndocument:\n{\"control\":\"EDI000007\",\"fields\":{\"qty_received\":\"160\"},\"occurred_at\":910,\"shipment\":2,\"type\":\"STATUS arrived\"}\n\nearlier documents for this shipment, in delivery order:\n{\"control\":\"EDI000005\",\"fields\":{\"eta\":\"910\",\"po\":\"1002\",\"qty_shipped\":\"160\"},\"occurred_at\":223,\"shipment\":2,\"type\":\"ASN\"}\n{\"control\":\"EDI000006\",\"fields\":{\"eta\":\"910\"},\"occurred_at\":268,\"shipment\":2,\"type\":\"STATUS in_transit\"}\n\ntool calls so far for this document:\n> {\"tool\":\"post_receipt\",\"args\":{\"shipment\":2,\"qty\":160}}\n< {\"error\":\"timeout\"}\n> {\"tool\":\"read_shipment\",\"args\":{\"shipment\":2}}\n< {\"dock_appointment\":910,\"flagged\":true,\"ordered\":190,\"promise_date\":null,\"receipts\":1}\n> {\"tool\":\"escalate\",\"args\":{\"shipment\":2,\"reason\":\"post_receipt for qty 160 returned a timeout, but read_shipment now shows receipts=1, so it is unclear whether the receipt was recorded. Retrying could double-post. Shipment is also flagged (ASN qty_shipped 160 vs ordered 190) with dock_appointment 910 and promise_date null. Needs manual check of the receipt ledger before any further writes.\"}}\n< {\"ok\":true}\n\nReply with the next JSON object.",
+        "response": "{\"done\":true}"
+      }
+    ]
+  }
+}
